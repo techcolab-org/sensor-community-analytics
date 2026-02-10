@@ -1,33 +1,13 @@
 """
-Utility module for downloading sensor data organized by station.
-Can be imported and used in views, scripts, or other parts of your Django app.
+OPTIMIZED Utility module for downloading sensor data organized by station.
+Includes performance improvements like parallel downloads and better memory management.
 
 Usage example:
-    from your_app.utils.station_data_downloader import StationDataDownloader
+    from your_app.utils.station_data_downloader_optimized import StationDataDownloader
 
-    # Single station - all sensors
-    downloader = StationDataDownloader(station_id=1)
+    # Download with 20 parallel workers for faster downloads
+    downloader = StationDataDownloader(station_id=1, max_workers=20)
     downloader.download_all_sensors(
-        start_date='2024-01-01',
-        end_date='2024-12-31',
-        merge=True,
-        merge_by_year=True
-    )
-
-    # Single station - specific sensors
-    downloader.download_all_sensors(
-        start_date='2024-01-01',
-        end_date='2024-12-31',
-        sensor_ids=[12345, 67890],  # Only download these sensors
-        merge=True,
-        merge_by_year=True
-    )
-
-    # Multiple stations
-    from your_app.utils.station_data_downloader import download_multiple_stations_data
-
-    results = download_multiple_stations_data(
-        station_ids=[1, 2, 3],
         start_date='2024-01-01',
         end_date='2024-12-31',
         merge=True,
@@ -42,7 +22,7 @@ import logging
 
 from django.core.exceptions import ObjectDoesNotExist
 from sensor.models import Station, Sensor
-from sensor.get_sensor_data import GetSensorData
+from sensor.get_sensor_data import GetSensorData  # Use optimized version
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +30,7 @@ logger = logging.getLogger(__name__)
 class StationDataDownloader:
     """
     Download sensor data for all sensors in a station, organized by station folder.
+    OPTIMIZED VERSION with parallel downloads.
     """
 
     # Map Django sensor type names to sensor.community format
@@ -66,7 +47,8 @@ class StationDataDownloader:
 
     def __init__(self, station_id: Optional[int] = None,
                  station_uid: Optional[str] = None,
-                 output_base_dir: str = 'sensor_data_by_station'):
+                 output_base_dir: str = 'sensor_data_by_station',
+                 max_workers: int = 15):  # NEW: Configurable workers
         """
         Initialize the downloader for a specific station.
 
@@ -74,16 +56,22 @@ class StationDataDownloader:
             station_id: Database ID of the station
             station_uid: UUID of the station (alternative to station_id)
             output_base_dir: Base directory for all downloads
+            max_workers: Number of parallel workers for downloads (default: 15)
         """
         self.station = self._get_station(station_id, station_uid)
         self.output_base_dir = Path(output_base_dir)
         self.station_dir = self._create_station_directory()
+        self.max_workers = max_workers
 
-        # Initialize the sensor data downloader
-        self.downloader = GetSensorData(output_dir=str(self.station_dir))
+        # Initialize the OPTIMIZED sensor data downloader
+        self.downloader = GetSensorData(
+            output_dir=str(self.station_dir),
+            max_workers=max_workers
+        )
 
-        logger.info(f"Initialized downloader for station: {self.station.name}")
+        logger.info(f"Initialized OPTIMIZED downloader for station: {self.station.name}")
         logger.info(f"Output directory: {self.station_dir}")
+        logger.info(f"Parallel workers: {max_workers}")
 
     def _get_station(self, station_id: Optional[int],
                      station_uid: Optional[str]) -> Station:
@@ -103,7 +91,6 @@ class StationDataDownloader:
         Create station-specific directory.
         Format: output_base_dir/StationName_StationUID/
         """
-        # Fix the method chaining
         station_dir_name = (
             self.station.name.lower()
             .replace('-', '_')
@@ -140,12 +127,13 @@ class StationDataDownloader:
     def download_all_sensors(self,
                              start_date: str = '2024-01-01',
                              end_date: Optional[str] = None,
-                             sensor_ids: Optional[List[int]] = None,  # NEW PARAMETER
+                             sensor_ids: Optional[List[int]] = None,
                              merge: bool = True,
                              create_missing: bool = True,
                              merge_by_year: bool = False) -> Dict[str, Any]:
         """
         Download data for all sensors in the station or specific sensors if sensor_ids provided.
+        OPTIMIZED: Uses parallel downloads for faster performance.
 
         Args:
             start_date: Start date in format 'YYYY-MM-DD'
@@ -219,7 +207,7 @@ class StationDataDownloader:
                 else:
                     auto_fetch = True
 
-                # Download the data
+                # Download the data with parallel processing
                 result = self.downloader.download_from_date(
                     sensor_id=str(sensor_id),
                     sensor_type=sensor_type,
@@ -260,7 +248,7 @@ class StationDataDownloader:
                                  merge_by_year: bool = False) -> Dict[str, Any]:
         """
         Download data for a specific sensor in the station.
-        Files will be organized under: station_folder/sensor_id/YYYY-MM/files
+        OPTIMIZED: Uses parallel downloads.
 
         Args:
             sensor_id: Database sensor_id (from sensor.community)
@@ -291,9 +279,11 @@ class StationDataDownloader:
         if not sensor_type:
             raise ValueError(f"Unknown sensor type: {sensor.sensor_type.name}")
 
-        # IMPORTANT: Reinitialize downloader with station directory to maintain folder structure
-        # This ensures even single sensor downloads go under the station folder
-        self.downloader = GetSensorData(output_dir=str(self.station_dir))
+        # Reinitialize downloader with optimized settings
+        self.downloader = GetSensorData(
+            output_dir=str(self.station_dir),
+            max_workers=self.max_workers
+        )
 
         # Set date range
         self.downloader.set_date_range(start_date, end_date)
@@ -313,7 +303,7 @@ class StationDataDownloader:
 
         logger.info(f"Downloading sensor {sensor_id} to: {self.station_dir}/{sensor_id}/")
 
-        # Download
+        # Download with parallel processing
         result = self.downloader.download_from_date(
             sensor_id=str(sensor_id),
             sensor_type=sensor_type,
@@ -346,6 +336,7 @@ class StationDataDownloader:
             'station_name': self.station.name,
             'station_uid': str(self.station.uid),
             'output_directory': str(self.station_dir),
+            'max_workers': self.max_workers,
             'coordinates': {
                 'lat': self.station.location.y if self.station.location else None,
                 'lon': self.station.location.x if self.station.location else None,
@@ -367,12 +358,14 @@ def download_station_data(station_id: Optional[int] = None,
                           station_uid: Optional[str] = None,
                           start_date: str = '2024-01-01',
                           end_date: Optional[str] = None,
-                          sensor_ids: Optional[List[int]] = None,  # NEW PARAMETER
+                          sensor_ids: Optional[List[int]] = None,
                           merge: bool = True,
                           merge_by_year: bool = False,
-                          output_dir: str = 'sensor_data_by_station') -> Dict[str, Any]:
+                          output_dir: str = 'sensor_data_by_station',
+                          max_workers: int = 15) -> Dict[str, Any]:
     """
     Quick function to download all sensor data for a single station.
+    OPTIMIZED VERSION with configurable parallel workers.
 
     Args:
         station_id: Database ID of the station
@@ -383,26 +376,18 @@ def download_station_data(station_id: Optional[int] = None,
         merge: If True, merge monthly CSV files
         merge_by_year: If True, merge all months into yearly files
         output_dir: Base directory for all downloads
+        max_workers: Number of parallel workers (default: 15, increase for faster downloads)
 
     Returns:
         Dictionary with download results
 
     Example:
-        # Download all sensors
+        # Fast download with 30 parallel workers
         results = download_station_data(
             station_id=1,
             start_date='2024-01-01',
             end_date='2024-12-31',
-            merge=True,
-            merge_by_year=True
-        )
-
-        # Download specific sensors only
-        results = download_station_data(
-            station_id=1,
-            sensor_ids=[12345, 67890],
-            start_date='2024-01-01',
-            end_date='2024-12-31',
+            max_workers=30,  # Faster!
             merge=True,
             merge_by_year=True
         )
@@ -410,13 +395,14 @@ def download_station_data(station_id: Optional[int] = None,
     downloader = StationDataDownloader(
         station_id=station_id,
         station_uid=station_uid,
-        output_base_dir=output_dir
+        output_base_dir=output_dir,
+        max_workers=max_workers
     )
 
     return downloader.download_all_sensors(
         start_date=start_date,
         end_date=end_date,
-        sensor_ids=sensor_ids,  # Pass through sensor_ids
+        sensor_ids=sensor_ids,
         merge=merge,
         merge_by_year=merge_by_year
     )
@@ -426,19 +412,15 @@ def download_multiple_stations_data(
         station_ids: Optional[Union[int, List[int]]] = None,
         start_date: str = '2024-01-01',
         end_date: Optional[str] = None,
-        sensor_ids: Optional[List[int]] = None,  # NEW PARAMETER
+        sensor_ids: Optional[List[int]] = None,
         merge: bool = True,
         merge_by_year: bool = False,
-        output_dir: str = 'sensor_data_by_station'
+        output_dir: str = 'sensor_data_by_station',
+        max_workers: int = 15
 ) -> Dict[str, Any]:
     """
     Download sensor data for single or multiple stations.
-
-    This function accepts either:
-    - A single station ID
-    - A list of station IDs
-
-    And optionally filters to specific sensors.
+    OPTIMIZED VERSION with parallel downloads.
 
     Args:
         station_ids: Single station ID or list of station database IDs
@@ -448,39 +430,18 @@ def download_multiple_stations_data(
         merge: If True, merge monthly CSV files
         merge_by_year: If True, merge all months into yearly files
         output_dir: Base directory for all downloads
+        max_workers: Number of parallel workers per station (default: 15)
 
     Returns:
         Dictionary with station identifiers as keys and download results as values
 
-    Examples:
-        # Single station - all sensors
-        results = download_multiple_stations_data(
-            station_ids=1,
-            start_date='2024-01-01'
-        )
-
-        # Single station - specific sensors
-        results = download_multiple_stations_data(
-            station_ids=1,
-            sensor_ids=[12345, 67890],
-            start_date='2024-01-01'
-        )
-
-        # Multiple stations - all sensors
+    Example:
+        # Ultra-fast download with 30 workers
         results = download_multiple_stations_data(
             station_ids=[1, 2, 3],
             start_date='2024-01-01',
             end_date='2024-12-31',
-            merge=True,
-            merge_by_year=True
-        )
-
-        # Multiple stations - specific sensors
-        results = download_multiple_stations_data(
-            station_ids=[1, 2, 3],
-            sensor_ids=[12345, 67890, 11111],
-            start_date='2024-01-01',
-            end_date='2024-12-31',
+            max_workers=30,  # Much faster!
             merge=True,
             merge_by_year=True
         )
@@ -497,6 +458,7 @@ def download_multiple_stations_data(
     # Process station IDs
     if station_ids:
         logger.info(f"Processing {len(station_ids)} station(s) by ID")
+        logger.info(f"Using {max_workers} parallel workers per station")
         if sensor_ids:
             logger.info(f"Filtering to specific sensor IDs: {sensor_ids}")
 
@@ -508,13 +470,14 @@ def download_multiple_stations_data(
             try:
                 downloader = StationDataDownloader(
                     station_id=station_id,
-                    output_base_dir=output_dir
+                    output_base_dir=output_dir,
+                    max_workers=max_workers
                 )
 
                 results = downloader.download_all_sensors(
                     start_date=start_date,
                     end_date=end_date,
-                    sensor_ids=sensor_ids,  # Pass through sensor_ids
+                    sensor_ids=sensor_ids,
                     merge=merge,
                     merge_by_year=merge_by_year
                 )
@@ -563,6 +526,7 @@ def download_multiple_stations_data(
     logger.info(f"Successful: {successful}")
     logger.info(f"Failed: {failed}")
     logger.info(f"Total sensors processed: {total_sensors}")
+    logger.info(f"Parallel workers used: {max_workers}")
     if sensor_ids:
         logger.info(f"Filtered to sensor IDs: {sensor_ids}")
     logger.info(f"{'=' * 60}\n")

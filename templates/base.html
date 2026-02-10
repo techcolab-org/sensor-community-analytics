@@ -121,15 +121,15 @@
                                 <p class="text-xs text-gray-500 truncate">{{ user.email|default:"No email" }}</p>
                             </div>
 
-                            <a href="#"
+                            <a href="{% url 'accounts:change_password' %}"
                                class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
-                                <i class="fas fa-user-circle w-4"></i> Profile
+                                <i class="fas fa-lock w-4"></i> Change Password
                             </a>
 
-                            <a href="#"
-                               class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">
-                                <i class="fas fa-cog w-4"></i> Settings
-                            </a>
+{#                            <a href="#"#}
+{#                               class="block px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2">#}
+{#                                <i class="fas fa-cog w-4"></i> Settings#}
+{#                            </a>#}
 
                             <div class="border-t border-white/5 mt-2 pt-2">
                                 <a href="{% url 'core:logout' %}"
