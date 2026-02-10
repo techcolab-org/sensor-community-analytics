@@ -1,0 +1,485 @@
+<!-- templates/file_manager/station_data_modal.html -->
+{% load static %}
+
+<!-- File Browser Modal -->
+<div id="fileBrowserModal" class="file-browser-modal">
+    <div class="file-browser-container">
+        <!-- Header -->
+        <div class="file-browser-header">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                   <img src="{% static 'sensolog.png' %}"
+                         alt="Sensolog Logo"
+                         class="w-full h-full object-contain p-1">
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">Station Data</h3>
+                    <p class="text-sm text-gray-500">Browse sensor data files</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="stat-pill text-purple-400">
+                    <i class="fas fa-folder"></i>
+                    <span id="folderCount">0</span>
+                </span>
+                <span class="stat-pill text-green-400">
+                    <i class="fas fa-file-csv"></i>
+                    <span id="fileCount">0</span>
+                </span>
+                <button onclick="closeFileBrowser()" class="close-btn ml-4">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="file-browser-content space-y-4">
+            <!-- Breadcrumb -->
+            <div class="flex items-center gap-2 p-3 bg-dark-800/50 rounded-xl border border-white/5">
+                <button id="backButton" onclick="goBack()" class="back-btn" style="display: none;">
+                    <i class="fas fa-arrow-left"></i>
+                    Back
+                </button>
+                <nav class="breadcrumb flex-1" id="breadcrumb">
+                    <span onclick="loadPath('')" class="breadcrumb-item active">
+                        <i class="fas fa-home text-cyan-400"></i>
+                        <span>Root</span>
+                    </span>
+                </nav>
+            </div>
+
+            <!-- Search -->
+            <div class="relative">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                <input type="text" id="searchInput" placeholder="Search folders or CSV files..."
+                       class="w-full bg-dark-800/80 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+                       oninput="filterItems(this.value)">
+            </div>
+
+            <!-- File Grid -->
+            <div id="fileGrid" class="folder-grid"></div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state hidden">
+                <i class="fas fa-folder-open text-gray-600"></i>
+                <h3 class="text-lg font-semibold text-gray-400 mb-2">No items found</h3>
+                <p class="text-gray-500">This folder is empty or no matches found</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSV Viewer Modal -->
+<div id="csvViewerModal" class="csv-viewer-modal">
+    <div class="csv-container">
+        <!-- Header -->
+        <div class="excel-header">
+            <div class="flex items-center gap-4">
+                <button onclick="closeCsvViewer()" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Files
+                </button>
+                <div class="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+                    <i class="fas fa-file-csv text-green-400 text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white" id="csvTitle">filename.csv</h3>
+                    <p class="text-sm text-gray-500" id="csvInfo">Loading...</p>
+                </div>
+            </div>
+            <button onclick="closeCsvViewer()" class="close-btn">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="excel-toolbar">
+            <div class="pagination">
+                <button onclick="changePage(-1)" id="prevBtn" class="page-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span class="text-sm text-gray-400 px-2">
+                    Page <span id="currentPage" class="text-cyan-400 font-semibold">1</span> of <span
+                        id="totalPages">1</span>
+                </span>
+                <button onclick="changePage(1)" id="nextBtn" class="page-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="h-6 w-px bg-white/10 mx-2"></div>
+            <button onclick="toggleShowAll()" id="showAllBtn" class="page-btn" style="min-width: auto; padding: 0 1rem;">
+                <i class="fas fa-list mr-2"></i>
+                <span id="showAllText">Show All</span>
+            </button>
+            <div class="h-6 w-px bg-white/10 mx-2"></div>
+            <span class="text-sm text-gray-500" id="rowInfo">0 rows</span>
+            <div class="flex-1"></div>
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                <input type="text" id="tableSearch" placeholder="Search data..."
+                       class="bg-dark-800/80 border border-white/10 rounded-lg pl-9 pr-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 w-48"
+                       oninput="searchTable(this.value)">
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="excel-table-wrapper" id="tableContainer">
+            <div class="table-loading">
+                <div class="spinner"></div>
+                <span>Loading CSV data...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Constants
+
+    // State management
+    let currentPath = '';
+    let pathHistory = [];
+    let allItems = [];
+    let filteredItems = [];
+    let csvData = [];
+    let csvHeaders = [];
+    let currentPageNum = 1;
+    let rowsPerPage = 100;
+    let showingAll = false;
+
+    // Open File Browser Modal
+    function openFileBrowser() {
+        document.getElementById('fileBrowserModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        pathHistory = [];
+        loadPath('');
+    }
+
+    // Close File Browser Modal
+    function closeFileBrowser() {
+        document.getElementById('fileBrowserModal').classList.remove('active');
+        document.body.style.overflow = '';
+        currentPath = '';
+        pathHistory = [];
+        allItems = [];
+        filteredItems = [];
+    }
+
+    // Go back to previous path
+    function goBack() {
+        if (pathHistory.length > 0) {
+            pathHistory.pop(); // Remove current path
+            const previousPath = pathHistory.pop() || ''; // Get previous path
+            loadPath(previousPath);
+        }
+    }
+
+    // Update back button visibility
+    function updateBackButton() {
+        const backButton = document.getElementById('backButton');
+        if (currentPath === '' || pathHistory.length <= 1) {
+            backButton.style.display = 'none';
+        } else {
+            backButton.style.display = 'flex';
+        }
+    }
+
+    // Load directory contents
+    async function loadPath(path) {
+        currentPath = path;
+        pathHistory.push(path);
+        updateBreadcrumb(path);
+        updateBackButton();
+
+        try {
+            const response = await fetch(`${STATION_DATA_URL}?path=${encodeURIComponent(path)}`);
+            const data = await response.json();
+
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+
+            allItems = data.items || [];
+            filteredItems = [...allItems];
+            renderGrid();
+            updateStats(data.stats);
+
+        } catch (err) {
+            showError('Failed to load directory');
+            console.error(err);
+        }
+    }
+
+    // Render file grid
+    function renderGrid() {
+        const grid = document.getElementById('fileGrid');
+        const emptyState = document.getElementById('emptyState');
+
+        if (filteredItems.length === 0) {
+            grid.innerHTML = '';
+            emptyState.classList.remove('hidden');
+            return;
+        }
+
+        emptyState.classList.add('hidden');
+
+        grid.innerHTML = filteredItems.map(item => {
+            const isFolder = item.type === 'folder';
+            const iconClass = isFolder ? 'folder-icon' : 'csv-icon';
+            const icon = isFolder ? 'fa-folder' : 'fa-file-csv';
+
+            return `
+            <div class="file-item" onclick="${isFolder ? `loadPath('${item.path}')` : `openCsvViewer('${item.path}', '${item.name}')`}">
+                <div class="${iconClass}">
+                    <i class="fas ${icon}"></i>
+                </div>
+                <h4 class="text-white font-medium text-sm mb-1 truncate" title="${item.name}">${item.name}</h4>
+                <div class="file-meta">
+                    ${isFolder ? `
+                        <span><i class="fas fa-folder-open mr-1"></i>${item.item_count || 0} items</span>
+                    ` : `
+                        <span>${formatBytes(item.size)} • ${item.modified}</span>
+                    `}
+                </div>
+            </div>
+        `;
+        }).join('');
+    }
+
+    // Update breadcrumb
+    function updateBreadcrumb(path) {
+        const container = document.getElementById('breadcrumb');
+        const parts = path.split('/').filter(p => p);
+
+        let html = `
+        <span onclick="loadPath('')" class="breadcrumb-item ${!path ? 'active' : ''}">
+            <i class="fas fa-home text-cyan-400"></i>
+            <span>Root</span>
+        </span>
+    `;
+
+        let buildPath = '';
+        parts.forEach((part, idx) => {
+            buildPath += (buildPath ? '/' : '') + part;
+            const isLast = idx === parts.length - 1;
+            html += `
+            <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+            <span onclick="loadPath('${buildPath}')" class="breadcrumb-item ${isLast ? 'active' : ''}">
+                <span>${part}</span>
+            </span>
+        `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // Filter items
+    function filterItems(query) {
+        const lower = query.toLowerCase();
+        filteredItems = allItems.filter(item => item.name.toLowerCase().includes(lower));
+        renderGrid();
+
+        if (query) {
+            setTimeout(() => {
+                document.querySelectorAll('.file-item h4').forEach(el => {
+                    const text = el.textContent;
+                    const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+                    el.innerHTML = text.replace(regex, '<span class="highlight">$1</span>');
+                });
+            }, 0);
+        }
+    }
+
+    // Open CSV Viewer
+    async function openCsvViewer(path, name) {
+        currentPageNum = 1;
+        showingAll = false;
+        document.getElementById('csvTitle').textContent = name;
+        document.getElementById('csvInfo').textContent = 'Loading...';
+        document.getElementById('csvViewerModal').classList.add('active');
+        document.getElementById('tableSearch').value = '';
+        document.getElementById('showAllText').textContent = 'Show All';
+        document.getElementById('prevBtn').style.display = 'flex';
+        document.getElementById('nextBtn').style.display = 'flex';
+        document.getElementById('currentPage').parentElement.style.display = 'inline';
+
+        try {
+            const response = await fetch(`${CSV_VIEWER_URL}?path=${encodeURIComponent(path)}`);
+            const data = await response.json();
+
+            if (data.error) {
+                document.getElementById('tableContainer').innerHTML = `
+                <div class="table-loading text-red-400">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    ${data.error}
+                </div>
+            `;
+                return;
+            }
+
+            csvHeaders = data.headers || [];
+            csvData = data.rows || [];
+            document.getElementById('csvInfo').textContent = `${csvData.length.toLocaleString()} rows • ${csvHeaders.length} columns`;
+            renderTable();
+
+        } catch (err) {
+            document.getElementById('tableContainer').innerHTML = `
+            <div class="table-loading text-red-400">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                Failed to load CSV
+            </div>
+        `;
+        }
+    }
+
+    // Close CSV Viewer
+    function closeCsvViewer() {
+        document.getElementById('csvViewerModal').classList.remove('active');
+        csvData = [];
+        csvHeaders = [];
+        showingAll = false;
+    }
+
+    // Toggle Show All functionality
+    function toggleShowAll() {
+        showingAll = !showingAll;
+        const showAllBtn = document.getElementById('showAllText');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const currentPageSpan = document.getElementById('currentPage').parentElement;
+
+        if (showingAll) {
+            showAllBtn.textContent = 'Show Pages';
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+            currentPageSpan.style.display = 'none';
+            currentPageNum = 1;
+        } else {
+            showAllBtn.textContent = 'Show All';
+            prevBtn.style.display = 'flex';
+            nextBtn.style.display = 'flex';
+            currentPageSpan.style.display = 'inline';
+        }
+
+        renderTable();
+    }
+
+    // Render Excel table
+    function renderTable() {
+        const start = showingAll ? 0 : (currentPageNum - 1) * rowsPerPage;
+        const end = showingAll ? csvData.length : Math.min(start + rowsPerPage, csvData.length);
+        const pageRows = csvData.slice(start, end);
+        const totalPages = Math.ceil(csvData.length / rowsPerPage) || 1;
+
+        if (!showingAll) {
+            document.getElementById('currentPage').textContent = currentPageNum;
+            document.getElementById('totalPages').textContent = totalPages;
+            document.getElementById('rowInfo').textContent = `Showing ${start + 1}-${end} of ${csvData.length.toLocaleString()} rows`;
+            document.getElementById('prevBtn').disabled = currentPageNum === 1;
+            document.getElementById('nextBtn').disabled = currentPageNum >= totalPages;
+        } else {
+            document.getElementById('rowInfo').textContent = `Showing all ${csvData.length.toLocaleString()} rows`;
+        }
+
+        let html = '<table class="excel-table"><thead><tr><th class="row-num">#</th>';
+        csvHeaders.forEach(h => html += `<th>${escapeHtml(h)}</th>`);
+        html += '</tr></thead><tbody>';
+
+        pageRows.forEach((row, idx) => {
+            const rowNum = start + idx + 1;
+            html += `<tr><td class="row-num">${rowNum}</td>`;
+            csvHeaders.forEach(h => {
+                const val = row[h] != null ? String(row[h]) : '';
+                const display = val.length > 100 ? val.substring(0, 100) + '...' : val;
+                html += `<td title="${escapeHtml(val)}">${escapeHtml(display)}</td>`;
+            });
+            html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        document.getElementById('tableContainer').innerHTML = html;
+    }
+
+    // Change page
+    function changePage(delta) {
+        const totalPages = Math.ceil(csvData.length / rowsPerPage);
+        const newPage = currentPageNum + delta;
+        if (newPage >= 1 && newPage <= totalPages) {
+            currentPageNum = newPage;
+            renderTable();
+            document.getElementById('tableContainer').scrollTop = 0;
+        }
+    }
+
+    // Search within table
+    function searchTable(query) {
+        if (!query) {
+            currentPageNum = 1;
+            renderTable();
+            return;
+        }
+
+        const lower = query.toLowerCase();
+        const filtered = csvData.filter(row =>
+            Object.values(row).some(v => String(v).toLowerCase().includes(lower))
+        );
+
+        const originalData = csvData;
+        csvData = filtered;
+        currentPageNum = 1;
+        renderTable();
+        document.getElementById('rowInfo').innerHTML = `Found <span class="text-cyan-400 font-semibold">${filtered.length}</span> matches`;
+        csvData = originalData;
+    }
+
+    // Update stats
+    function updateStats(stats) {
+        document.getElementById('folderCount').textContent = stats.folders || 0;
+        document.getElementById('fileCount').textContent = stats.files || 0;
+    }
+
+    // Utilities
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function showError(msg) {
+        document.getElementById('fileGrid').innerHTML = `
+        <div class="col-span-full text-center py-12 text-red-400">
+            <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+            <p>${msg}</p>
+        </div>
+    `;
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (document.getElementById('csvViewerModal').classList.contains('active')) {
+                closeCsvViewer();
+            } else if (document.getElementById('fileBrowserModal').classList.contains('active')) {
+                closeFileBrowser();
+            }
+        }
+        if (e.key === 'ArrowLeft' && e.ctrlKey && document.getElementById('csvViewerModal').classList.contains('active')) {
+            changePage(-1);
+        }
+        if (e.key === 'ArrowRight' && e.ctrlKey && document.getElementById('csvViewerModal').classList.contains('active')) {
+            changePage(1);
+        }
+    });
+</script>

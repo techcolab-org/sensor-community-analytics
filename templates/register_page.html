@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register - Sensolog{% endblock %}
+
+{% block content %}
+    <div class="min-h-[80vh] flex items-center justify-center py-12">
+        <div class="w-full max-w-md">
+            <!-- Logo Section -->
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 mb-4 transform hover:scale-105 transition-transform duration-300">
+                    <img src="{% static 'sensolog.png' %}"
+                         alt="Sensolog Logo"
+                         class="w-full h-full object-contain p-1">
+                </div>
+                <h2 class="text-3xl font-bold text-white mb-2">Create Account</h2>
+                <p class="text-gray-400 text-sm">Join Sensolog to manage your sensors</p>
+            </div>
+
+            <!-- Register Card -->
+            <div class="glass-panel rounded-2xl p-8 border border-white/10 shadow-2xl shadow-black/50">
+                <form method="post" novalidate class="space-y-5">
+                    {% csrf_token %}
+
+                    <!-- Username Field -->
+                    <div class="group">
+                        <label class="block text-sm font-medium text-gray-400 mb-2 group-focus-within:text-cyan-400 transition-colors">
+                            <i class="fas fa-user mr-2"></i>Username
+                        </label>
+                        <div class="relative">
+                            <input type="text"
+                                   name="username"
+                                   required
+                                   class="w-full bg-dark-800/50 border {% if form.username.errors %}border-red-500/50{% else %}border-white/10{% endif %} rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                                   placeholder="Choose a username"
+                                   value="{{ form.username.value|default:'' }}">
+                        </div>
+                        {% if form.username.errors %}
+                            <p class="mt-1.5 text-sm text-red-400 flex items-center gap-1">
+                                <i class="fas fa-exclamation-circle text-xs"></i>
+                                {{ form.username.errors.0 }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Email Field -->
+                    <div class="group">
+                        <label class="block text-sm font-medium text-gray-400 mb-2 group-focus-within:text-cyan-400 transition-colors">
+                            <i class="fas fa-envelope mr-2"></i>Email Address
+                        </label>
+                        <div class="relative">
+                            <input type="email"
+                                   name="email"
+                                   required
+                                   class="w-full bg-dark-800/50 border {% if form.email.errors %}border-red-500/50{% else %}border-white/10{% endif %} rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                                   placeholder="your@email.com"
+                                   value="{{ form.email.value|default:'' }}">
+                        </div>
+                        {% if form.email.errors %}
+                            <p class="mt-1.5 text-sm text-red-400 flex items-center gap-1">
+                                <i class="fas fa-exclamation-circle text-xs"></i>
+                                {{ form.email.errors.0 }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="group">
+                        <label class="block text-sm font-medium text-gray-400 mb-2 group-focus-within:text-cyan-400 transition-colors">
+                            <i class="fas fa-lock mr-2"></i>Password
+                        </label>
+                        <div class="relative">
+                            <input type="password"
+                                   name="password1"
+                                   id="password1"
+                                   required
+                                   class="w-full bg-dark-800/50 border {% if form.password1.errors %}border-red-500/50{% else %}border-white/10{% endif %} rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all pr-12"
+                                   placeholder="Create a password">
+                            <button type="button"
+                                    onclick="togglePassword('password1', 'eyeIcon1')"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-cyan-400 transition-colors p-2">
+                                <i class="fas fa-eye" id="eyeIcon1"></i>
+                            </button>
+                        </div>
+                        {% if form.password1.errors %}
+                            <p class="mt-1.5 text-sm text-red-400 flex items-center gap-1">
+                                <i class="fas fa-exclamation-circle text-xs"></i>
+                                {{ form.password1.errors.0 }}
+                            </p>
+                        {% else %}
+                            <p class="mt-1.5 text-xs text-gray-500">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Must be at least 8 characters with letters and numbers
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Confirm Password Field -->
+                    <div class="group">
+                        <label class="block text-sm font-medium text-gray-400 mb-2 group-focus-within:text-cyan-400 transition-colors">
+                            <i class="fas fa-shield-alt mr-2"></i>Confirm Password
+                        </label>
+                        <div class="relative">
+                            <input type="password"
+                                   name="password2"
+                                   id="password2"
+                                   required
+                                   class="w-full bg-dark-800/50 border {% if form.password2.errors %}border-red-500/50{% else %}border-white/10{% endif %} rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 transition-all pr-12"
+                                   placeholder="Confirm your password">
+                            <button type="button"
+                                    onclick="togglePassword('password2', 'eyeIcon2')"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-cyan-400 transition-colors p-2">
+                                <i class="fas fa-eye" id="eyeIcon2"></i>
+                            </button>
+                        </div>
+                        {% if form.password2.errors %}
+                            <p class="mt-1.5 text-sm text-red-400 flex items-center gap-1">
+                                <i class="fas fa-exclamation-circle text-xs"></i>
+                                {{ form.password2.errors.0 }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Non-field Errors -->
+                    {% if form.non_field_errors %}
+                        <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
+                            <i class="fas fa-exclamation-circle text-red-400 mt-0.5"></i>
+                            <div class="text-sm text-red-400">
+                                {{ form.non_field_errors.0 }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Terms Checkbox -->
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox"
+                               required
+                               class="mt-1 w-4 h-4 rounded border-gray-600 bg-dark-800 text-cyan-500 focus:ring-cyan-500/20 focus:ring-offset-0 cursor-pointer">
+                        <label class="text-sm text-gray-400 cursor-pointer select-none">
+                            I agree to the
+                            <a href="#" class="text-cyan-400 hover:text-cyan-300 transition-colors">Terms of Service</a>
+                            and
+                            <a href="#" class="text-cyan-400 hover:text-cyan-300 transition-colors">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit"
+                            class="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 group">
+                        <span>Create Account</span>
+                        <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="relative my-8">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-white/10"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-4 bg-[#151e32] text-gray-500 rounded">or</span>
+                    </div>
+                </div>
+
+                <!-- Login Link -->
+                <div class="text-center">
+                    <p class="text-gray-400 text-sm">
+                        Already have an account?
+                        <a href="{% url 'core:login' %}"
+                           class="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors ml-1">
+                            Sign in
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(iconId);
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Add input focus animations
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', function () {
+                this.parentElement.classList.add('scale-[1.02]');
+            });
+            input.addEventListener('blur', function () {
+                this.parentElement.classList.remove('scale-[1.02]');
+            });
+        });
+    </script>
+{% endblock %}

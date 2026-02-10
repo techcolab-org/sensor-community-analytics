@@ -1,0 +1,346 @@
+<!-- Download Station Configuration Modal -->
+<div id="downloadConfigModal" class="fixed inset-0 z-[80] hidden">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeDownloadModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-panel w-full max-w-4xl rounded-2xl border border-white/10 shadow-2xl my-8 max-h-[90vh] flex flex-col"
+             id="downloadModalContent">
+            <!-- Modal Header - Fixed -->
+            <div class="p-6 border-b border-white/10 flex items-center justify-between bg-dark-800/80 flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Download Station Data</h3>
+                        <p class="text-sm text-gray-400" id="downloadModalSubtitle">Configure download settings</p>
+                    </div>
+                </div>
+                <button onclick="closeDownloadModal()"
+                        class="w-8 h-8 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body - Scrollable -->
+            <div class="overflow-y-auto flex-1">
+                <form id="downloadConfigForm" class="p-6 space-y-6 bg-dark-800/60" onsubmit="event.preventDefault();">
+                    <!-- Sensor Info Section -->
+                    <div id="stationInfo" class="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-emerald-400 mt-0.5"></i>
+                            <div class="text-sm text-gray-300 flex-1">
+                                <p class="font-medium text-white mb-2">Selected Station:</p>
+                                <div class="space-y-1 text-xs">
+                                    <p class="text-gray-400">
+                                        <span class="text-emerald-400 font-semibold" id="stationInfoStationName">Station Name</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Date Range Section -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fas fa-calendar-alt text-cyan-400"></i>
+                            <h4 class="text-sm font-semibold text-white">Date Range</h4>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">
+                                    <i class="fas fa-calendar-day text-gray-500 mr-1"></i>
+                                    Start Date
+                                </label>
+                                <input type="date"
+                                       id="downloadStartDate"
+                                       value="2024-01-01"
+                                       class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/10 text-white focus:border-cyan-500/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">
+                                    <i class="fas fa-calendar-check text-gray-500 mr-1"></i>
+                                    End Date
+                                </label>
+                                <input type="date"
+                                       id="downloadEndDate"
+                                       max=""
+                                       class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/10 text-white focus:border-cyan-500/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Quick date presets -->
+                        <div class="flex gap-2 flex-wrap">
+                            <button type="button"
+                                    onclick="setDatePreset('today')"
+                                    class="px-3 py-1.5 text-xs rounded-lg bg-dark-700/50 hover:bg-dark-700 text-gray-300 border border-white/10 transition-colors">
+                                Today
+                            </button>
+                            <button type="button"
+                                    onclick="setDatePreset('last7days')"
+                                    class="px-3 py-1.5 text-xs rounded-lg bg-dark-700/50 hover:bg-dark-700 text-gray-300 border border-white/10 transition-colors">
+                                Last 7 Days
+                            </button>
+                            <button type="button"
+                                    onclick="setDatePreset('last30days')"
+                                    class="px-3 py-1.5 text-xs rounded-lg bg-dark-700/50 hover:bg-dark-700 text-gray-300 border border-white/10 transition-colors">
+                                Last 30 Days
+                            </button>
+                            <button type="button"
+                                    onclick="setDatePreset('lastyear')"
+                                    class="px-3 py-1.5 text-xs rounded-lg bg-dark-700/50 hover:bg-dark-700 text-gray-300 border border-white/10 transition-colors">
+                                Last Year
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Merge Options Section -->
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fas fa-layer-group text-emerald-400"></i>
+                            <h4 class="text-sm font-semibold text-white">Merge Options</h4>
+                        </div>
+
+                        <label class="flex items-start gap-3 cursor-pointer p-4 rounded-xl hover:bg-white/5 transition-colors border border-white/5">
+                            <input type="checkbox"
+                                   id="downloadMerge"
+                                   checked
+                                   class="mt-0.5 w-5 h-5 rounded border-gray-600 bg-dark-700 text-cyan-500 focus:ring-cyan-500/50 cursor-pointer">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <p class="text-sm font-medium text-white">Merge Monthly Files</p>
+                                    <span class="px-2 py-0.5 text-xs rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Recommended</span>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-1">Combine all daily CSV files into one file per month</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start gap-3 cursor-pointer p-4 rounded-xl hover:bg-white/5 transition-colors border border-white/5">
+                            <input type="checkbox"
+                                   id="downloadMergeByYear"
+                                   checked
+                                   class="mt-0.5 w-5 h-5 rounded border-gray-600 bg-dark-700 text-cyan-500 focus:ring-cyan-500/50 cursor-pointer">
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-white">Merge by Year</p>
+                                <p class="text-xs text-gray-400 mt-1">Create a single file for the entire year (requires monthly merge)</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-cyan-400 mt-0.5"></i>
+                            <div class="text-sm text-gray-300 flex-1">
+                                <p class="font-medium text-white mb-2">Download Location:</p>
+                                <div class="space-y-1 text-xs">
+                                    <p class="text-gray-400">Files will be organized in the following structure:</p>
+                                    <code class="block text-cyan-400 bg-dark-800/50 px-3 py-2 rounded-lg mt-2 font-mono text-xs">
+                                        sensor_data_by_station/<br/>
+                                        └── <span id="stationPathStationName">StationName_UID</span>/<br/>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;└── <span id="sensorPathSensorId">sensor_id</span>/<br/>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── YYYY-MM/files.csv<br/>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── YYYY-MM/{merged_files_for_month}.csv
+                                    </code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3 pt-2">
+                        <button type="button"
+                                onclick="closeDownloadModal()"
+                                class="flex-1 py-3 rounded-xl bg-dark-700/50 hover:bg-dark-700 text-white font-medium transition-colors border border-white/10">
+                            <i class="fas fa-times mr-2"></i>
+                            Cancel
+                        </button>
+                        <!-- FIXED: Changed from type="submit" to type="button" and added id -->
+                        <button id="startStationDownloadBtn"
+                                type="submit"
+                                class="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold shadow-lg shadow-cyan-500/20 transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-download"></i>
+                            Start Download
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Download Sensor Data Configuration Modal -->
+<div id="downloadSensorModal" class="fixed inset-0 z-[80] hidden">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeSensorDownloadModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-panel w-full max-w-4xl rounded-2xl border border-white/10 shadow-2xl my-8 max-h-[90vh] flex flex-col"
+             id="downloadSensorModalContent">
+            <!-- Modal Header - Fixed -->
+            <div class="p-6 border-b border-white/10 flex items-center justify-between bg-dark-800/80 flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Download Sensor Data</h3>
+                        <p class="text-sm text-gray-400" id="downloadSensorModalSubtitle">Configure download settings</p>
+                    </div>
+                </div>
+                <button onclick="closeSensorDownloadModal()"
+                        class="w-8 h-8 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body - Scrollable -->
+            <div class="overflow-y-auto flex-1">
+                <form id="downloadSensorConfigForm" class="p-6 space-y-6 bg-dark-800/60" onsubmit="event.preventDefault();">
+                    <!-- Sensor Info Section -->
+                    <div class="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-emerald-400 mt-0.5"></i>
+                            <div class="text-sm text-gray-300 flex-1">
+                                <p class="font-medium text-white mb-2">Selected Sensor:</p>
+                                <div class="space-y-1 text-xs">
+                                    <p class="text-gray-400">
+                                        <span class="text-emerald-400 font-semibold" id="sensorInfoStationName">Station Name</span>
+                                        <span class="mx-2">•</span>
+                                        Sensor ID: <span class="text-cyan-400 font-mono" id="sensorInfoSensorId">12345</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date Range Section -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fas fa-calendar-alt text-cyan-400"></i>
+                            <h4 class="text-sm font-semibold text-white">Date Range</h4>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">
+                                    <i class="fas fa-calendar-day text-gray-500 mr-1"></i>
+                                    Start Date
+                                </label>
+                                <input type="date"
+                                       id="downloadSensorStartDate"
+                                       value="2024-01-01"
+                                       class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/10 text-white focus:border-cyan-500/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">
+                                    <i class="fas fa-calendar-check text-gray-500 mr-1"></i>
+                                    End Date
+                                </label>
+                                <input type="date"
+                                       id="downloadSensorEndDate"
+                                       max=""
+                                       class="w-full px-4 py-3 rounded-xl bg-dark-700/50 border border-white/10 text-white focus:border-cyan-500/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Quick date presets -->
+                        <div class="flex gap-2 flex-wrap">
+                            <button type="button"
+                                    onclick="setSensorDatePreset('today')"
+                                    class="px-3 py-1.5 text-xs rounded-lg bg-dark-700/50 hover:bg-dark-700 text-gray-300 border border-white/10 transition-colors">
+                                Today
+                            </button>
+                            <button type="button"
+                                    onclick="setSensorDatePreset('last7days')"
+                                    class="px-3 py-1.5 text-xs rounded-lg bg-dark-700/50 hover:bg-dark-700 text-gray-300 border border-white/10 transition-colors">
+                                Last 7 Days
+                            </button>
+                            <button type="button"
+                                    onclick="setSensorDatePreset('last30days')"
+                                    class="px-3 py-1.5 text-xs rounded-lg bg-dark-700/50 hover:bg-dark-700 text-gray-300 border border-white/10 transition-colors">
+                                Last 30 Days
+                            </button>
+                            <button type="button"
+                                    onclick="setSensorDatePreset('lastyear')"
+                                    class="px-3 py-1.5 text-xs rounded-lg bg-dark-700/50 hover:bg-dark-700 text-gray-300 border border-white/10 transition-colors">
+                                Last Year
+                            </button>
+                            <button type="button"
+                                    onclick="setSensorDatePreset('all')"
+                                    class="px-3 py-1.5 text-xs rounded-lg bg-dark-700/50 hover:bg-dark-700 text-gray-300 border border-white/10 transition-colors">
+                                All Available Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Merge Options Section -->
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fas fa-layer-group text-emerald-400"></i>
+                            <h4 class="text-sm font-semibold text-white">Merge Options</h4>
+                        </div>
+
+                        <label class="flex items-start gap-3 cursor-pointer p-4 rounded-xl hover:bg-white/5 transition-colors border border-white/5">
+                            <input type="checkbox"
+                                   id="downloadSensorMerge"
+                                   checked
+                                   class="mt-0.5 w-5 h-5 rounded border-gray-600 bg-dark-700 text-emerald-500 focus:ring-emerald-500/50 cursor-pointer">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <p class="text-sm font-medium text-white">Merge Monthly Files</p>
+                                    <span class="px-2 py-0.5 text-xs rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Recommended</span>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-1">Combine all daily CSV files into one file per month</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start gap-3 cursor-pointer p-4 rounded-xl hover:bg-white/5 transition-colors border border-white/5">
+                            <input type="checkbox"
+                                   id="downloadSensorMergeByYear"
+                                   checked
+                                   class="mt-0.5 w-5 h-5 rounded border-gray-600 bg-dark-700 text-emerald-500 focus:ring-emerald-500/50 cursor-pointer">
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-white">Merge by Year</p>
+                                <p class="text-xs text-gray-400 mt-1">Create a single file for the entire year (requires monthly merge)</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-cyan-400 mt-0.5"></i>
+                            <div class="text-sm text-gray-300 flex-1">
+                                <p class="font-medium text-white mb-2">Download Location:</p>
+                                <div class="space-y-1 text-xs">
+                                    <p class="text-gray-400">Files will be organized in the following structure:</p>
+                                    <code class="block text-cyan-400 bg-dark-800/50 px-3 py-2 rounded-lg mt-2 font-mono text-xs">
+                                        sensor_data_by_station/<br/>
+                                        └── <span id="sensorPathStationName">StationName_UID</span>/<br/>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;└── <span id="sensorPathSensorId">sensor_id</span>/<br/>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── YYYY-MM/files.csv<br/>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── YYYY-MM/{merged_files_for_month}.csv
+                                    </code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3 pt-2">
+                        <button type="button"
+                                onclick="closeSensorDownloadModal()"
+                                class="flex-1 py-3 rounded-xl bg-dark-700/50 hover:bg-dark-700 text-white font-medium transition-colors border border-white/10">
+                            <i class="fas fa-times mr-2"></i>
+                            Cancel
+                        </button>
+                        <button id="startSensorDownloadBtn" type="submit"
+                                class="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-download"></i>
+                            Start Download
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

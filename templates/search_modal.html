@@ -1,0 +1,47 @@
+<!-- Search Modal -->
+<div id="searchModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);">
+    <div class="glass-panel w-full max-w-2xl rounded-2xl overflow-hidden neon-glow" onclick="event.stopPropagation()">
+        <!-- Search Input -->
+        <div class="p-6 border-b border-gray-700/50">
+            <div class="relative">
+                <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search stations, sensors, locations..."
+                    class="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+                    autocomplete="off"
+                >
+                <button onclick="closeSearchModal()" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <div id="searchResults" class="max-h-96 overflow-y-auto scrollbar-hide">
+            <!-- Results will be inserted here -->
+        </div>
+
+        <!-- No Results Message -->
+        <div id="noResults" class="hidden p-8 text-center">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-gray-400">No results found</p>
+        </div>
+
+        <!-- Quick Stats Footer -->
+        <div class="p-4 border-t border-gray-700/50 bg-gray-900/30">
+            <div class="flex justify-between text-xs text-gray-400">
+                <span>{{ total_stations }} stations</span>
+                <span>{{ active_sensors }} active sensors</span>
+                <span>Press <kbd class="px-2 py-1 bg-gray-800 rounded border border-gray-700">ESC</kbd> to close</span>
+            </div>
+        </div>
+    </div>
+</div>
