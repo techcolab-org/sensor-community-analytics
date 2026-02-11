@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     'core',
     'sensor',
     'community_sensor',
-    'accounts'
 ]
 
 MIDDLEWARE = [

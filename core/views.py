@@ -1,9 +1,12 @@
-from django.shortcuts import redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views.generic import CreateView
 from django.urls import reverse_lazy
-from .forms import CustomUserCreationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import update_session_auth_hash
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from .forms import CustomPasswordChangeForm, CustomUserCreationForm
 
 
 class CustomLoginView(LoginView):
@@ -28,7 +31,7 @@ class CustomLogoutView(LogoutView):
 class RegisterView(CreateView):
     form_class = CustomUserCreationForm
     template_name = 'register_page.html'
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('core:login')
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -43,3 +46,25 @@ class RegisterView(CreateView):
             return redirect('sensor:home')
         return super().get(request, *args, **kwargs)
 
+
+@login_required
+def change_password(request):
+    """
+    View for changing user password
+    """
+    if request.method == 'POST':
+        form = CustomPasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Important: Update session to prevent logout after password change
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('core:change_password')  # Or redirect to profile/dashboard
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = CustomPasswordChangeForm(request.user)
+
+    return render(request, 'change_password.html', {
+        'form': form
+    })
