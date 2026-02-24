@@ -23,3 +23,6 @@ fakertest/*
 
 sensor_data_by_station
 sensor_data_by_station/*
+
+max_min_data
+max_min_data/*
