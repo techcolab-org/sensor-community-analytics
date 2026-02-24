@@ -1,0 +1,82 @@
+[
+  {
+    "model": "core.coresensortype",
+    "pk": 1,
+    "fields": {
+      "name": "sds011",
+      "description": "Laser-based particulate matter sensor measuring PM2.5 and PM10 concentrations, commonly used in air quality monitoring."
+    }
+  },
+  {
+    "model": "core.coresensortype",
+    "pk": 2,
+    "fields": {
+      "name": "dht22",
+      "description": "Digital temperature and humidity sensor providing calibrated output with good accuracy for environmental monitoring."
+    }
+  },
+  {
+    "model": "core.coresensortype",
+    "pk": 3,
+    "fields": {
+      "name": "bmp180",
+      "description": "Barometric pressure sensor used for measuring atmospheric pressure and altitude estimation."
+    }
+  },
+  {
+    "model": "core.coresensortype",
+    "pk": 4,
+    "fields": {
+      "name": "bmp280",
+      "description": "High-precision barometric pressure and temperature sensor, commonly used in weather stations."
+    }
+  },
+  {
+    "model": "core.coresensortype",
+    "pk": 5,
+    "fields": {
+      "name": "bme280",
+      "description": "Environmental sensor measuring temperature, humidity, and atmospheric pressure in a single module."
+    }
+  },
+  {
+    "model": "core.coresensortype",
+    "pk": 6,
+    "fields": {
+      "name": "hpm",
+      "description": "Honeywell particulate matter sensor used for detecting airborne particle concentration for indoor and outdoor air quality."
+    }
+  },
+  {
+    "model": "core.coresensortype",
+    "pk": 7,
+    "fields": {
+      "name": "pms3003",
+      "description": "Plantower particulate matter sensor measuring PM1.0, PM2.5, and PM10 for air pollution monitoring."
+    }
+  },
+  {
+    "model": "core.coresensortype",
+    "pk": 8,
+    "fields": {
+      "name": "pms5003",
+      "description": "Widely used Plantower PM sensor providing reliable PM1.0, PM2.5, and PM10 readings for air quality systems."
+    }
+  },
+  {
+    "model": "core.coresensortype",
+    "pk": 9,
+    "fields": {
+      "name": "pms7003",
+      "description": "Advanced Plantower particulate matter sensor with improved airflow design for accurate PM measurements."
+    }
+  },
+  {
+    "model": "core.coresensortype",
+    "pk": 10,
+    "fields": {
+      "name": "sps30",
+      "description": "High-accuracy Sensirion particulate matter sensor with long lifetime and advanced particle measurement technology."
+    }
+  }
+]

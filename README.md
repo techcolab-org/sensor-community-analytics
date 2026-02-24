@@ -332,6 +332,12 @@ python manage.py migrate
 
 ### 7. Load Initial Data
 
+#### 7.1 Copy Sample json file
+Copy sensor types data:
+```bash
+cp sensolog/fixtures/sensor_type_json sensolog/fixtures/sensor_type.json
+```
+#### 7.2 Copy Sample json file
 Load predefined sensor types:
 
 ```bash
@@ -996,18 +1002,6 @@ docker-compose ps
 # The postgis/postgis image includes PostGIS by default
 # Verify by connecting to the container
 docker-compose exec db psql -U sensolog_user -d sensolog_db -c "SELECT PostGIS_version();"
-```
-
-If installed manually:
-```sql
--- Connect to your database
-\c sensolog_db
-
--- Install PostGIS
-CREATE EXTENSION postgis;
-
--- Verify installation
-SELECT PostGIS_version();
 ```
 
 #### 6. Missing Environment Variables
