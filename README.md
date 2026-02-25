@@ -604,7 +604,7 @@ downloader.download_specific_sensor(
    - **Pagination**: Navigate large datasets
    - **Search**: Filter rows by keyword
    - **Sort**: Click column headers to sort
-   - **Export**: Download filtered/sorted results
+   - **Download**: Download results 
 
 **CSV Data Structure:**
 
